@@ -27,11 +27,11 @@ out/
 .DS_Store
 Thumbs.db
 
-# Agent tooling
-.claude/
-CLAUDE.md
+# Local tooling
+.*cache/
+*.local.md
+AGENTS.md
 
 # Test artifacts
 playwright-report/
 test-results/
-AGENTS.md
