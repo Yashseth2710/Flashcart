@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { FrontPageSale } from "@/components/sales/front-page-sale";
 import { SiteHeader } from "@/components/site-header";
 
 const rules = [
@@ -12,6 +13,7 @@ export default function Home() {
   return (
     <>
       <SiteHeader />
+      <FrontPageSale />
 
       <main className="px-6 sm:px-12">
         <section className="grid items-end gap-10 py-16 lg:grid-cols-[1.15fr_1fr] lg:gap-20 lg:py-24">
@@ -34,13 +36,13 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-8">
               <Link
-                href="/products"
+                href="/sales"
                 className="label inline-block border border-ink px-8 py-3.5 transition-colors hover:bg-ink hover:text-paper"
               >
-                Browse the shop
+                See the sales
               </Link>
-              <Link href="/register" className="label text-muted underline underline-offset-4 hover:text-ink">
-                Create an account
+              <Link href="/products" className="label text-muted underline underline-offset-4 hover:text-ink">
+                Browse the shop
               </Link>
             </div>
           </div>
@@ -63,9 +65,9 @@ export default function Home() {
         </section>
 
         <section className="flex flex-wrap items-baseline justify-between gap-4 border-t border-rule py-10">
-          <p className="label text-muted">No sale is running yet</p>
+          <p className="label text-muted">How a hold works</p>
           <p className="text-sm text-ink-soft">
-            Browse what is in stock, and be ready when the first one opens.
+            Reserve one and it is yours for five minutes while you check out.
           </p>
         </section>
       </main>
