@@ -13,7 +13,9 @@ from app.schemas.catalogue import (
     StockLevel,
     StockWrite,
 )
+from app.schemas.flash_sale import SaleDetail, SaleItemWrite, SaleSummary, SaleWrite
 from app.services.catalogue import CatalogueService
+from app.services.flash_sale import FlashSaleService
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -77,3 +79,39 @@ def list_products_to_manage(
         newest_first=True,
     )
     return ProductPage(items=items, total=total, limit=limit, offset=offset)
+
+
+@router.get("/flash-sales", response_model=list[SaleSummary])
+def list_all_sales(db: DbSession, _: AdminUser) -> list[SaleSummary]:
+    """Every sale, finished ones included, newest first."""
+    return FlashSaleService(db).everything()
+
+
+@router.post("/flash-sales", response_model=SaleDetail, status_code=status.HTTP_201_CREATED)
+def create_sale(payload: SaleWrite, db: DbSession, admin: AdminUser) -> SaleDetail:
+    return FlashSaleService(db).create(payload, admin)
+
+
+@router.get("/flash-sales/{sale_id}", response_model=SaleDetail)
+def read_sale_to_manage(sale_id: uuid.UUID, db: DbSession, _: AdminUser) -> SaleDetail:
+    return FlashSaleService(db).read(sale_id)
+
+
+@router.post("/flash-sales/{sale_id}/items", response_model=SaleDetail)
+def add_sale_item(
+    sale_id: uuid.UUID, payload: SaleItemWrite, db: DbSession, _: AdminUser
+) -> SaleDetail:
+    """Puts a product in the sale, moving its stock out of the warehouse."""
+    return FlashSaleService(db).add_item(sale_id, payload)
+
+
+@router.delete("/flash-sales/{sale_id}/items/{item_id}", response_model=SaleDetail)
+def remove_sale_item(
+    sale_id: uuid.UUID, item_id: uuid.UUID, db: DbSession, _: AdminUser
+) -> SaleDetail:
+    return FlashSaleService(db).remove_item(sale_id, item_id)
+
+
+@router.delete("/flash-sales/{sale_id}", status_code=status.HTTP_204_NO_CONTENT)
+def cancel_sale(sale_id: uuid.UUID, db: DbSession, _: AdminUser) -> None:
+    FlashSaleService(db).cancel(sale_id)
