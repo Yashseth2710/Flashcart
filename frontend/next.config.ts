@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    // Catalogue photography is imported with the products it belongs to.
+    remotePatterns: [{ protocol: "https", hostname: "cdn.dummyjson.com" }],
+  },
 };
 
 export default nextConfig;

@@ -15,7 +15,10 @@ export function SiteHeader() {
         <LogoInline />
       </Link>
 
-      <nav className="label flex items-center gap-7 text-muted">
+      <nav className="label flex items-center gap-4 text-muted sm:gap-7">
+        <Link href="/products" className="hover:text-ink">
+          Shop
+        </Link>
         {isLoading ? null : profile ? (
           <>
             {profile.role === "ADMIN" ? (
@@ -23,7 +26,7 @@ export function SiteHeader() {
                 Admin
               </Link>
             ) : null}
-            <span className="hidden text-ink sm:inline">{profile.name}</span>
+            <span className="hidden text-ink md:inline">{profile.name}</span>
             <button onClick={() => signOut()} disabled={isPending} className="hover:text-ink">
               Sign out
             </button>
