@@ -111,3 +111,22 @@ class StockIsSpokenFor(HTTPException):
                 "They cannot be taken back."
             ),
         )
+
+
+class OrdersMustBeKept(HTTPException):
+    def __init__(self, count: int) -> None:
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"This account has {count} order{'s' if count != 1 else ''} on it and cannot "
+                "be deleted. Contact support if you need it removed."
+            ),
+        )
+
+
+class ConfirmationDoesNotMatch(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="That is not the email address on this account.",
+        )

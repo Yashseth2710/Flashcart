@@ -22,7 +22,11 @@ class User(UUIDPrimaryKey, Timestamped, Base):
         Enum(UserRole, name="user_role"), default=UserRole.CUSTOMER, nullable=False
     )
 
-    reservations: Mapped[list["Reservation"]] = relationship(back_populates="user")
+    # The database already cascades reservations when an account goes. Saying so
+    # here stops the session trying to orphan them by nulling user_id first.
+    reservations: Mapped[list["Reservation"]] = relationship(
+        back_populates="user", passive_deletes=True
+    )
     orders: Mapped[list["Order"]] = relationship(back_populates="user")
 
     def __repr__(self) -> str:
