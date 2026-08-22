@@ -2,6 +2,9 @@ import { z } from "zod";
 
 import { request } from "./api";
 import { productDetailSchema, productPageSchema, type ProductPage } from "./catalogue";
+import { saleDetailSchema, saleSummarySchema, type SaleDetail, type SaleSummary } from "./sales";
+
+export type { SaleDetail, SaleSummary };
 
 export const stockLevelSchema = z.object({
   variant_id: z.string(),
@@ -47,4 +50,48 @@ export function setStock(variantId: string, total: number): Promise<StockLevel> 
     method: "PUT",
     body: { variant_id: variantId, total_quantity: total },
   });
+}
+
+
+export type NewSale = {
+  name: string;
+  description?: string | null;
+  start_time: string;
+  end_time: string;
+};
+
+export type NewSaleItem = {
+  variant_id: string;
+  sale_price: string;
+  allocated_quantity: number;
+  max_per_user: number;
+};
+
+export function fetchAllSales(): Promise<SaleSummary[]> {
+  return request("/admin/flash-sales", z.array(saleSummarySchema));
+}
+
+export function fetchSaleToManage(id: string): Promise<SaleDetail> {
+  return request(`/admin/flash-sales/${id}`, saleDetailSchema);
+}
+
+export function createSale(body: NewSale): Promise<SaleDetail> {
+  return request("/admin/flash-sales", saleDetailSchema, { method: "POST", body });
+}
+
+export function addSaleItem(saleId: string, body: NewSaleItem): Promise<SaleDetail> {
+  return request(`/admin/flash-sales/${saleId}/items`, saleDetailSchema, {
+    method: "POST",
+    body,
+  });
+}
+
+export function removeSaleItem(saleId: string, itemId: string): Promise<SaleDetail> {
+  return request(`/admin/flash-sales/${saleId}/items/${itemId}`, saleDetailSchema, {
+    method: "DELETE",
+  });
+}
+
+export function cancelSale(saleId: string): Promise<void> {
+  return request(`/admin/flash-sales/${saleId}`, z.void(), { method: "DELETE" });
 }

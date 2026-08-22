@@ -57,7 +57,26 @@ body {
   outline-offset: 3px;
 }
 
+/* The strip scrolls one copy's width, then snaps back; four copies keep the
+   line unbroken at any width. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 26s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+
   *,
   *::before,
   *::after {

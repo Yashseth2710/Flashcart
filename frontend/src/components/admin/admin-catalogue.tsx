@@ -1,6 +1,7 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import { useState } from "react";
 
 import { NewProductForm } from "@/components/admin/new-product-form";
@@ -26,12 +27,17 @@ export function AdminCatalogue() {
           <p className="label text-muted">Manage</p>
           <h1 className="mt-2 font-display text-4xl uppercase tracking-[0.045em]">Catalogue</h1>
         </div>
+        <div className="flex items-center gap-7">
+        <Link href="/admin/sales" className="label text-muted hover:text-ink">
+          Sales
+        </Link>
         <button
           onClick={() => setAdding((open) => !open)}
           className="label border border-ink px-7 py-3 transition-colors hover:bg-ink hover:text-paper"
         >
           {adding ? "Cancel" : "Add a product"}
         </button>
+        </div>
       </header>
 
       {adding ? <NewProductForm onDone={() => setAdding(false)} /> : null}
