@@ -21,6 +21,8 @@ class Product(UUIDPrimaryKey, Timestamped, Base):
     slug: Mapped[str] = mapped_column(String(200), unique=True, index=True, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     category: Mapped[str | None] = mapped_column(String(80), index=True)
+    brand: Mapped[str | None] = mapped_column(String(120))
+    image_url: Mapped[str | None] = mapped_column(String(500))
     base_price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
@@ -48,6 +50,15 @@ class ProductVariant(UUIDPrimaryKey, TimestampedAt, Base):
     inventory: Mapped["Inventory"] = relationship(
         back_populates="variant", uselist=False, cascade="all, delete-orphan"
     )
+
+    @property
+    def available_quantity(self) -> int:
+        """How many of this variant anyone can still take.
+
+        A variant with no stock row has never been stocked, which is the same as
+        having none.
+        """
+        return self.inventory.available_quantity if self.inventory else 0
 
     def __repr__(self) -> str:
         return f"<ProductVariant {self.sku}>"
