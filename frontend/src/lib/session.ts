@@ -30,3 +30,18 @@ export function register(body: Registration): Promise<Profile> {
 export function logout(): Promise<void> {
   return request("/auth/logout", z.void(), { method: "POST" });
 }
+
+export function renameAccount(name: string): Promise<Profile> {
+  return request("/auth/me", profileSchema, { method: "PATCH", body: { name } });
+}
+
+export function changePassword(body: {
+  current_password: string;
+  new_password: string;
+}): Promise<void> {
+  return request("/auth/me/password", z.void(), { method: "POST", body });
+}
+
+export function closeAccount(email: string): Promise<void> {
+  return request("/auth/me/delete", z.void(), { method: "POST", body: { email } });
+}
