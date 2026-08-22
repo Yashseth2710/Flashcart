@@ -1,24 +1,32 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Oswald, Public_Sans } from "next/font/google";
+import { JetBrains_Mono, Karla, La_Belle_Aurore, Playfair_Display } from "next/font/google";
 
 import { QueryProvider } from "@/providers/query-provider";
 
 import "./globals.css";
 
-const oswald = Oswald({
+const playfair = Playfair_Display({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-oswald",
+  variable: "--font-playfair",
 });
 
-const publicSans = Public_Sans({
+const karla = Karla({
   subsets: ["latin"],
-  variable: "--font-public-sans",
+  weight: ["300", "400", "500"],
+  variable: "--font-karla",
+});
+
+const belleAurore = La_Belle_Aurore({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-belle",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
+  weight: ["400", "500"],
+  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
@@ -26,9 +34,16 @@ export const metadata: Metadata = {
   description: "Buy before it's gone. Built to handle the rush.",
 };
 
+const fontVariables = [
+  playfair.variable,
+  karla.variable,
+  belleAurore.variable,
+  jetbrainsMono.variable,
+].join(" ");
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${oswald.variable} ${publicSans.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={fontVariables}>
       <body>
         <QueryProvider>{children}</QueryProvider>
       </body>
