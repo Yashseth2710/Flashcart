@@ -4,7 +4,14 @@ from app.core.config import get_settings
 from app.core.dependencies import CurrentUser, DbSession
 from app.core.security import create_access_token
 from app.models import User
-from app.schemas.auth import LoginRequest, RegistrationRequest, UserProfile
+from app.schemas.auth import (
+    AccountDeletion,
+    LoginRequest,
+    PasswordChange,
+    ProfileUpdate,
+    RegistrationRequest,
+    UserProfile,
+)
 from app.services.auth import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -52,3 +59,24 @@ def logout(response: Response) -> None:
 @router.get("/me", response_model=UserProfile)
 def read_current_user(user: CurrentUser) -> User:
     return user
+
+
+@router.patch("/me", response_model=UserProfile)
+def rename_account(payload: ProfileUpdate, user: CurrentUser, db: DbSession) -> User:
+    return AuthService(db).rename(user, payload.name)
+
+
+@router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(payload: PasswordChange, user: CurrentUser, db: DbSession) -> None:
+    AuthService(db).change_password(
+        user, current=payload.current_password, replacement=payload.new_password
+    )
+
+
+@router.post("/me/delete", status_code=status.HTTP_204_NO_CONTENT)
+def close_account(
+    payload: AccountDeletion, user: CurrentUser, db: DbSession, response: Response
+) -> None:
+    """A POST rather than a DELETE, because it carries a body confirming intent."""
+    AuthService(db).close_account(user, confirmation=payload.email)
+    response.delete_cookie(get_settings().cookie_name, path="/")
