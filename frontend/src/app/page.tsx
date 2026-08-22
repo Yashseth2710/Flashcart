@@ -32,12 +32,17 @@ export default function Home() {
               time. Reserve one and it is held while you decide. Nothing is sold twice, however
               many people reach for it at once.
             </p>
-            <Link
-              href="/register"
-              className="label mt-8 inline-block border border-ink px-8 py-3.5 transition-colors hover:bg-ink hover:text-paper"
-            >
-              Create an account
-            </Link>
+            <div className="mt-8 flex flex-wrap items-center gap-8">
+              <Link
+                href="/products"
+                className="label inline-block border border-ink px-8 py-3.5 transition-colors hover:bg-ink hover:text-paper"
+              >
+                Browse the shop
+              </Link>
+              <Link href="/register" className="label text-muted underline underline-offset-4 hover:text-ink">
+                Create an account
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -58,9 +63,9 @@ export default function Home() {
         </section>
 
         <section className="flex flex-wrap items-baseline justify-between gap-4 border-t border-rule py-10">
-          <p className="label text-muted">The catalogue is being stocked</p>
+          <p className="label text-muted">No sale is running yet</p>
           <p className="text-sm text-ink-soft">
-            Accounts work now, so you can be ready when the floor opens.
+            Browse what is in stock, and be ready when the first one opens.
           </p>
         </section>
       </main>
