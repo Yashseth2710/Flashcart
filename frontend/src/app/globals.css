@@ -1,19 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #ede9e1;
-  --color-paper-deep: #e2ddd3;
-  --color-ink: #16161a;
-  --color-fill: #1f6f4a;
-  --color-reject: #b03a2b;
-  --color-hold: #c88a2e;
-  --color-dim: #8a867e;
+  /* Warm neutrals only. Colour is reserved for reservation state, so nothing
+     else on the page is allowed to compete with it. */
+  --color-paper: #fdfcfa;
+  --color-panel: #f5efea;
+  --color-panel-deep: #ece3db;
+  --color-ink: #1a1815;
+  --color-ink-soft: #4a453e;
+  --color-muted: #8b8378;
+  --color-rule: #e0d8d0;
 
-  --font-display: var(--font-oswald), "Arial Narrow", sans-serif;
-  --font-body: var(--font-public-sans), system-ui, sans-serif;
-  --font-data: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --color-fill: #2f6b4f;
+  --color-hold: #a8762c;
+  --color-reject: #9c3a2a;
 
-  --radius-board: 2px;
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-body: var(--font-karla), system-ui, sans-serif;
+  --font-script: var(--font-belle), cursive;
+  --font-data: var(--font-mono), ui-monospace, monospace;
+
+  --tracking-wide-caps: 0.18em;
 }
 
 :root {
@@ -27,10 +34,27 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Board rows report live numbers; tabular figures keep columns from shifting as they tick. */
+/* Anything that can change while you watch it. Tabular figures stop the
+   column from twitching as digits tick over. */
 .tabular {
   font-family: var(--font-data);
   font-variant-numeric: tabular-nums;
+}
+
+/* Small uppercase labels: eyebrows, buttons, field names. */
+.label {
+  font-size: 0.6875rem;
+  letter-spacing: var(--tracking-wide-caps);
+  text-transform: uppercase;
+}
+
+::selection {
+  background: var(--color-panel-deep);
+}
+
+:focus-visible {
+  outline: 1.5px solid var(--color-ink);
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -41,26 +65,4 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-/* The flip marks a value that just changed, the way a board row turns over. */
-@keyframes flip {
-  0% {
-    transform: rotateX(0deg);
-    opacity: 1;
-  }
-  50% {
-    transform: rotateX(-90deg);
-    opacity: 0.35;
-  }
-  100% {
-    transform: rotateX(0deg);
-    opacity: 1;
-  }
-}
-
-.animate-flip {
-  animation: flip 260ms ease-out;
-  transform-origin: center;
-  display: inline-block;
 }
