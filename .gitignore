@@ -37,3 +37,4 @@ AGENTS.md
 # Test artifacts
 playwright-report/
 test-results/
+shots/

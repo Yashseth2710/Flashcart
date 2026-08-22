@@ -5,14 +5,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+import app.models  # noqa: F401  (import side effect: registers tables)
 from app.core.config import get_settings
+from app.db.session import get_db
 from app.main import app
-from app.models import *  # noqa: F403  (import side effect: registers tables)
-
-
-@pytest.fixture
-def client() -> TestClient:
-    return TestClient(app)
 
 
 @pytest.fixture(scope="session")
@@ -45,3 +41,13 @@ def db(engine) -> Iterator[Session]:
         if transaction.is_active:
             transaction.rollback()
         connection.close()
+
+
+@pytest.fixture
+def client(db: Session) -> Iterator[TestClient]:
+    """A client whose requests run in the test's transaction, so anything a
+    request writes is rolled back with everything else."""
+    app.dependency_overrides[get_db] = lambda: db
+    with TestClient(app) as test_client:
+        yield test_client
+    app.dependency_overrides.clear()
