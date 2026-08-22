@@ -58,3 +58,56 @@ class StockBelowCommitted(HTTPException):
                 "Set the total to at least that."
             ),
         )
+
+
+class SaleNotFound(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="That sale does not exist.",
+        )
+
+
+class SaleItemNotFound(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="That product is not in the sale.",
+        )
+
+
+class NotEnoughStockToAllocate(HTTPException):
+    def __init__(self, available: int) -> None:
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"Only {available} in the warehouse. " "Add stock or allocate fewer to the sale."
+            ),
+        )
+
+
+class AlreadyInTheSale(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="That product is already in this sale.",
+        )
+
+
+class SaleAlreadyStarted(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="A sale that has started cannot be changed.",
+        )
+
+
+class StockIsSpokenFor(HTTPException):
+    def __init__(self, committed: int) -> None:
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"{committed} units are already held or sold in this sale. "
+                "They cannot be taken back."
+            ),
+        )
