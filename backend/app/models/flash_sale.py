@@ -47,6 +47,17 @@ class FlashSale(UUIDPrimaryKey, TimestampedAt, Base):
         back_populates="flash_sale", cascade="all, delete-orphan"
     )
 
+    def status_at(self, now: datetime) -> str:
+        """Read from the clock rather than stored, so it can never go stale."""
+        if now < self.start_time:
+            return "UPCOMING"
+        if now < self.end_time:
+            return "ACTIVE"
+        return "ENDED"
+
+    def is_running_at(self, now: datetime) -> bool:
+        return self.start_time <= now < self.end_time
+
     def __repr__(self) -> str:
         return f"<FlashSale {self.name}>"
 

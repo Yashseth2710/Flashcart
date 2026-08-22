@@ -16,7 +16,14 @@ def get_engine() -> Engine:
         settings = get_settings()
         if not settings.database_configured:
             raise RuntimeError("DATABASE_URL is not set")
-        _engine = create_engine(settings.database_url, pool_pre_ping=True)
+        _engine = create_engine(
+            settings.database_url,
+            # Neon closes idle connections when it scales to zero. Pre-ping
+            # catches a dead one before it is handed out; recycling retires
+            # connections before they get old enough to be dropped.
+            pool_pre_ping=True,
+            pool_recycle=280,
+        )
     return _engine
 
 
