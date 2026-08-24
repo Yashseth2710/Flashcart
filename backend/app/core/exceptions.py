@@ -130,3 +130,55 @@ class ConfirmationDoesNotMatch(HTTPException):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="That is not the email address on this account.",
         )
+
+
+class SaleNotRunning(HTTPException):
+    def __init__(self, status_name: str) -> None:
+        detail = (
+            "This sale has not started yet."
+            if status_name == "UPCOMING"
+            else "This sale has ended."
+        )
+        super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
+
+
+class NotEnoughLeft(HTTPException):
+    """Someone else got there first, between the page loading and the button."""
+
+    def __init__(self, available: int) -> None:
+        detail = (
+            "That has just sold out."
+            if available == 0
+            else f"Only {available} left. Lower the quantity and try again."
+        )
+        super().__init__(status_code=status.HTTP_409_CONFLICT, detail=detail)
+
+
+class PurchaseLimitReached(HTTPException):
+    def __init__(self, limit: int, already: int) -> None:
+        held = f"You already have {already} of them." if already else ""
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"There is a limit of {limit} per person on this one. {held}".strip(),
+        )
+
+
+class ReservationNotFound(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="That hold does not exist.",
+        )
+
+
+class ReservationNotActive(HTTPException):
+    def __init__(self, status_name: str) -> None:
+        wording = {
+            "COMPLETED": "That hold has already been checked out.",
+            "EXPIRED": "That hold has run out of time.",
+            "CANCELLED": "That hold has already been let go.",
+        }
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=wording.get(status_name, "That hold is no longer active."),
+        )
