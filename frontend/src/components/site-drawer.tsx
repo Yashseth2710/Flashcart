@@ -88,6 +88,9 @@ export function SiteDrawer({ isOpen, onClose }: Props) {
                 <Item href="/account/holds" current={pathname}>
                   Holds
                 </Item>
+                <Item href="/account/orders" current={pathname}>
+                  Orders
+                </Item>
                 <Item href="/account/settings" current={pathname}>
                   Settings
                 </Item>
