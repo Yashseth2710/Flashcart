@@ -51,3 +51,12 @@ def client(db: Session) -> Iterator[TestClient]:
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+
+
+# Concurrency tests need connections that commit, which the fixtures above
+# deliberately prevent. Theirs live alongside rather than replacing these.
+from tests.conftest_concurrency import (  # noqa: E402,F401
+    committing_engine,
+    sessions,
+    world,
+)
