@@ -8,3 +8,10 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_default_fixture_loop_scope = "function"
+# The crowd tests raise real threads on real connections, so they take minutes
+# rather than seconds. They run by default because the guarantee they cover is
+# the point of the project; `-m "not crowd"` skips them while working on
+# something else.
+markers = [
+    "crowd: runs many shoppers at once against a real database",
+]
