@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     cookie_name: str = "flashcart_session"
     cookie_secure: bool = False
     environment: str = "development"
+    # How long a hold lasts. Long enough to finish checking out, short enough
+    # that an abandoned basket does not sit on stock others are waiting for.
+    reservation_minutes: int = 10
 
     @model_validator(mode="after")
     def _refuse_to_run_unsigned(self) -> "Settings":
