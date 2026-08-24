@@ -182,3 +182,39 @@ class ReservationNotActive(HTTPException):
             status_code=status.HTTP_409_CONFLICT,
             detail=wording.get(status_name, "That hold is no longer active."),
         )
+
+
+class OrderNotFound(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="That order does not exist.",
+        )
+
+
+class HoldAlreadyBought(HTTPException):
+    """The unique index on orders.reservation_id refused a second order."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="That hold has already been checked out.",
+        )
+
+
+class PaymentDeclined(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="The payment was declined. Nothing has been charged.",
+        )
+
+
+class KeyReusedOnDifferentRequest(HTTPException):
+    """Same idempotency key, different body: returning the old result would be a lie."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="That request key has already been used for a different order.",
+        )
