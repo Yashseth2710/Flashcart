@@ -6,9 +6,12 @@ import { useEffect } from "react";
 
 import { useSession } from "@/hooks/use-session";
 
-/** Sections of the account area. Holds and orders arrive with the parts of the
- *  shop that create them. */
-const sections = [{ href: "/account/settings", label: "Settings" }] as const;
+/** Sections of the account area, in the order they matter: what is running out
+ *  first, then what is settled. Orders arrive with checkout. */
+const sections = [
+  { href: "/account/holds", label: "Holds" },
+  { href: "/account/settings", label: "Settings" },
+] as const;
 
 export function AccountShell({ children }: { children: React.ReactNode }) {
   const { profile, isLoading } = useSession();
