@@ -7,9 +7,10 @@ import { useEffect } from "react";
 import { useSession } from "@/hooks/use-session";
 
 /** Sections of the account area, in the order they matter: what is running out
- *  first, then what is settled. Orders arrive with checkout. */
+ *  first, then what is settled. */
 const sections = [
   { href: "/account/holds", label: "Holds" },
+  { href: "/account/orders", label: "Orders" },
   { href: "/account/settings", label: "Settings" },
 ] as const;
 
