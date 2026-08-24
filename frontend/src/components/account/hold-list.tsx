@@ -4,15 +4,22 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { CheckoutPanel } from "@/components/account/checkout-panel";
 import { useHolds, useReleaseHold } from "@/hooks/use-holds";
 import { ApiError } from "@/lib/api";
 import { formatPrice } from "@/lib/catalogue";
 import { formatRemaining, type Hold } from "@/lib/holds";
+import { shortReference } from "@/lib/orders";
 import { useSession } from "@/hooks/use-session";
 
 export function HoldList() {
   const { profile } = useSession();
   const { data, isPending, isError } = useHolds({ enabled: Boolean(profile) });
+
+  // Buying moves a hold out of the counting-down list, so the row that was
+  // being paid for stops existing at the moment it succeeds. The confirmation
+  // is kept up here, where it outlives that.
+  const [bought, setBought] = useState<{ orderId: string; name: string } | null>(null);
 
   const live = data?.filter((hold) => hold.status === "ACTIVE") ?? [];
   const past = data?.filter((hold) => hold.status !== "ACTIVE") ?? [];
@@ -27,6 +34,8 @@ export function HoldList() {
           goes back to the sale for someone else.
         </p>
       </header>
+
+      {bought ? <BoughtNotice orderId={bought.orderId} name={bought.name} /> : null}
 
       {isError ? (
         <p className="mt-14 border-l-2 border-reject pl-4 text-sm text-reject">
@@ -43,7 +52,7 @@ export function HoldList() {
               <h2 className="label text-muted">Counting down</h2>
               <ul>
                 {live.map((hold) => (
-                  <LiveHold key={hold.id} hold={hold} />
+                  <LiveHold key={hold.id} hold={hold} onBought={setBought} />
                 ))}
               </ul>
             </section>
@@ -65,61 +74,112 @@ export function HoldList() {
   );
 }
 
+
+/** What just happened, kept where the row that caused it cannot take it away. */
+function BoughtNotice({ orderId, name }: { orderId: string; name: string }) {
+  return (
+    <div className="mt-10 border-l-2 border-fill pl-5">
+      <p className="font-display text-xl text-ink">Bought.</p>
+      <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+        {name} is yours. Order{" "}
+        <span className="tabular text-ink">{shortReference(orderId)}</span>.
+      </p>
+      <Link
+        href="/account/orders"
+        className="label mt-5 inline-block border border-ink px-8 py-3.5 transition-colors
+                   hover:bg-ink hover:text-paper"
+      >
+        See your orders
+      </Link>
+    </div>
+  );
+}
+
 /** A hold with time left. The clock is the point of the row, so it is the
  *  largest thing in it and the only thing that moves. */
-function LiveHold({ hold }: { hold: Hold }) {
+function LiveHold({
+  hold,
+  onBought,
+}: {
+  hold: Hold;
+  onBought: (bought: { orderId: string; name: string }) => void;
+}) {
   const remaining = useTicker(hold.expires_at);
   const release = useReleaseHold();
+  const [paying, setPaying] = useState(false);
 
   // The last minute is when it starts to matter, so that is when it changes colour.
   const urgent = remaining <= 60;
   const gone = remaining <= 0;
 
   return (
-    <li className="flex flex-wrap items-center gap-x-8 gap-y-5 border-b border-rule py-6">
-      <Thumbnail hold={hold} />
+    <li className="border-b border-rule py-6">
+      <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
+        <Thumbnail hold={hold} />
 
-      <div className="min-w-[10rem] flex-1">
-        <Link
-          href={`/products/${hold.product_slug}`}
-          className="text-sm leading-snug text-ink hover:underline hover:underline-offset-4"
-        >
-          {hold.product_name}
-        </Link>
-        <p className="tabular mt-1.5 text-xs text-muted">
-          {hold.quantity} × {formatPrice(hold.sale_price)} · {hold.sale_name}
-        </p>
-      </div>
-
-      <div className="text-right">
-        <p
-          className={`tabular text-2xl leading-none tracking-tight ${
-            gone ? "text-muted" : urgent ? "text-reject" : "text-hold"
-          }`}
-          // Read out only as it becomes urgent, rather than every second.
-          aria-live={urgent ? "polite" : "off"}
-        >
-          {gone ? "—" : formatRemaining(remaining)}
-        </p>
-        <p className="label mt-2 text-muted">{gone ? "Time up" : "left"}</p>
-      </div>
-
-      <div className="text-right">
-        <p className="tabular text-sm text-ink">{formatPrice(hold.line_total)}</p>
-        <button
-          onClick={() => release.mutate(hold.id)}
-          disabled={release.isPending}
-          className="label mt-2 text-muted underline underline-offset-4 transition-colors
-                     hover:text-reject disabled:opacity-40"
-        >
-          {release.isPending ? "Letting go" : "Let it go"}
-        </button>
-        {release.error ? (
-          <p role="alert" className="mt-2 max-w-[12rem] text-xs leading-relaxed text-reject">
-            {release.error instanceof ApiError ? release.error.message : "Could not let it go."}
+        <div className="min-w-[10rem] flex-1">
+          <Link
+            href={`/products/${hold.product_slug}`}
+            className="text-sm leading-snug text-ink hover:underline hover:underline-offset-4"
+          >
+            {hold.product_name}
+          </Link>
+          <p className="tabular mt-1.5 text-xs text-muted">
+            {hold.quantity} × {formatPrice(hold.sale_price)} · {hold.sale_name}
           </p>
-        ) : null}
+        </div>
+
+        <div className="text-right">
+          <p
+            className={`tabular text-2xl leading-none tracking-tight ${
+              gone ? "text-muted" : urgent ? "text-reject" : "text-hold"
+            }`}
+            // Read out only as it becomes urgent, rather than every second.
+            aria-live={urgent ? "polite" : "off"}
+          >
+            {gone ? "—" : formatRemaining(remaining)}
+          </p>
+          <p className="label mt-2 text-muted">{gone ? "Time up" : "left"}</p>
+        </div>
+
+        <div className="text-right">
+          <p className="tabular text-sm text-ink">{formatPrice(hold.line_total)}</p>
+          <div className="mt-2 flex items-center justify-end gap-5">
+            {/* Buying is the reason the hold exists, so it leads. Once the
+                clock is out there is nothing left to buy. */}
+            {!gone && !paying ? (
+              <button
+                onClick={() => setPaying(true)}
+                className="label border border-ink px-6 py-2.5 transition-colors
+                           hover:bg-ink hover:text-paper"
+              >
+                Buy it
+              </button>
+            ) : null}
+            <button
+              onClick={() => release.mutate(hold.id)}
+              disabled={release.isPending}
+              className="label text-muted underline underline-offset-4 transition-colors
+                         hover:text-reject disabled:opacity-40"
+            >
+              {release.isPending ? "Letting go" : "Let it go"}
+            </button>
+          </div>
+          {release.error ? (
+            <p role="alert" className="mt-2 max-w-[12rem] text-xs leading-relaxed text-reject">
+              {release.error instanceof ApiError ? release.error.message : "Could not let it go."}
+            </p>
+          ) : null}
+        </div>
       </div>
+
+      {paying ? (
+        <CheckoutPanel
+          hold={hold}
+          onDone={() => setPaying(false)}
+          onBought={(orderId) => onBought({ orderId, name: hold.product_name })}
+        />
+      ) : null}
     </li>
   );
 }
