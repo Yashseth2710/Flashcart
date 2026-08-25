@@ -10,6 +10,7 @@ from app.models.enums import UserRole
 if TYPE_CHECKING:
     from app.models.order import Order
     from app.models.reservation import Reservation
+    from app.models.saved import SaleReminder, SavedProduct
 
 
 class User(UUIDPrimaryKey, Timestamped, Base):
@@ -28,6 +29,14 @@ class User(UUIDPrimaryKey, Timestamped, Base):
         back_populates="user", passive_deletes=True
     )
     orders: Mapped[list["Order"]] = relationship(back_populates="user")
+    # Markers rather than commitments, so they go with the account without
+    # anything having to be handed back first.
+    saved_products: Mapped[list["SavedProduct"]] = relationship(
+        back_populates="user", passive_deletes=True
+    )
+    sale_reminders: Mapped[list["SaleReminder"]] = relationship(
+        back_populates="user", passive_deletes=True
+    )
 
     def __repr__(self) -> str:
         return f"<User {self.email}>"
