@@ -48,3 +48,29 @@ Worth knowing: the single-unit case still passes without the lock, because the
 `reserved + sold <= allocated` constraint catches it on its own. Only the
 multi-unit cases expose the missing lock, which is why that test is
 parametrised over several stock levels.
+
+## Rate limits
+
+`test_rate_limits.py` counts against a real table, so the same tests cover the
+statement that does the counting and the decision made from it.
+
+Two things there are worth knowing.
+
+Every test takes a caller name from the `subject` fixture rather than sharing
+one. A window turns over on the wall clock, so tests that shared a name would,
+once a minute, have a boundary fall between two of them and see a tally start
+again for reasons that have nothing to do with the code.
+
+The tests that make several attempts and then read the count also pin the
+clock, for the same reason within a single test.
+
+To check they still bite, take out the refusal in `check` in
+`app/services/rate_limit.py`:
+
+```
+pytest tests/test_rate_limits.py
+```
+
+Eleven of the thirty should fail. Restore it and they pass again. Note the
+counting tests keep passing, which is the point of separating them: counting
+correctly and refusing correctly are different claims.

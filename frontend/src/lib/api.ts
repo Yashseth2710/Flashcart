@@ -6,13 +6,28 @@ export class ApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    /** How long to wait, when the server has said to slow down. */
+    readonly retryAfterSeconds?: number,
+    /** The id the server logged this request under, worth showing only when
+     *  there is nothing else useful to say. */
+    readonly requestId?: string,
   ) {
     super(message);
     this.name = "ApiError";
   }
+
+  /** Going too fast, rather than anything being wrong with the request. */
+  get isTooManyAttempts(): boolean {
+    return this.status === 429;
+  }
 }
 
-const problemSchema = z.object({ detail: z.string() });
+/** Every refusal comes back in one shape, whichever layer refused it. The
+ *  extra keys are optional so an older response still reads. */
+const problemSchema = z.object({
+  detail: z.string(),
+  request_id: z.string().optional(),
+});
 
 type RequestOptions = {
   method?: string;
@@ -34,7 +49,7 @@ export async function request<T>(
   });
 
   if (!response.ok) {
-    throw new ApiError(await readMessage(response), response.status);
+    throw await readProblem(response);
   }
 
   if (response.status === 204) {
@@ -44,14 +59,22 @@ export async function request<T>(
   return schema.parse(await response.json());
 }
 
-async function readMessage(response: Response): Promise<string> {
+async function readProblem(response: Response): Promise<ApiError> {
+  const retryAfter = Number(response.headers.get("Retry-After"));
+
   try {
     const parsed = problemSchema.safeParse(await response.json());
     if (parsed.success) {
-      return parsed.data.detail;
+      return new ApiError(
+        parsed.data.detail,
+        response.status,
+        Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
+        parsed.data.request_id,
+      );
     }
   } catch {
     // A response without a JSON body still needs something to show.
   }
-  return "Something went wrong. Try again.";
+
+  return new ApiError("Something went wrong. Try again.", response.status);
 }

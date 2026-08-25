@@ -84,7 +84,16 @@ export function ReserveControl({ item }: { item: SaleItem }) {
       </button>
 
       {place.error ? (
-        <p role="alert" className="mt-3 text-xs leading-relaxed text-reject">
+        <p
+          role="alert"
+          className={`mt-3 text-xs leading-relaxed ${
+            // Being asked to slow down is not the same as being turned away:
+            // nothing is wrong, and the same tap works again in a moment.
+            place.error instanceof ApiError && place.error.isTooManyAttempts
+              ? "text-hold"
+              : "text-reject"
+          }`}
+        >
           {place.error instanceof ApiError ? place.error.message : "Could not hold it."}
         </p>
       ) : null}

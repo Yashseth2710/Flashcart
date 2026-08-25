@@ -3,6 +3,7 @@ import uuid
 from fastapi import APIRouter, status
 
 from app.core.dependencies import CurrentUser, DbSession
+from app.core.limits import LimitCheckouts
 from app.schemas.order import CheckoutWrite, Order
 from app.services.order import OrderService
 
@@ -15,7 +16,12 @@ def list_my_orders(db: DbSession, user: CurrentUser) -> list[Order]:
     return OrderService(db).mine(user)
 
 
-@router.post("", response_model=Order, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=Order,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[LimitCheckouts],
+)
 def check_out(payload: CheckoutWrite, db: DbSession, user: CurrentUser) -> Order:
     """Buy a hold. Repeating the same request returns the same order."""
     return OrderService(db).check_out(payload, user)
