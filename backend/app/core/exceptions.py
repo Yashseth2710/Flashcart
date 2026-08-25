@@ -218,3 +218,27 @@ class KeyReusedOnDifferentRequest(HTTPException):
             status_code=status.HTTP_409_CONFLICT,
             detail="That request key has already been used for a different order.",
         )
+
+
+class SavedItemNotFound(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="That product is not in your saved list.",
+        )
+
+
+class ReminderNotFound(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="You are not being reminded about that sale.",
+        )
+
+
+class SaleAlreadyFinished(HTTPException):
+    def __init__(self) -> None:
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="That sale has already ended.",
+        )
