@@ -3,6 +3,7 @@ import uuid
 from fastapi import APIRouter, status
 
 from app.core.dependencies import CurrentUser, DbSession
+from app.core.limits import LimitHolds
 from app.schemas.reservation import Hold, HoldWrite
 from app.services.reservation import ReservationService
 
@@ -15,7 +16,12 @@ def list_my_holds(db: DbSession, user: CurrentUser) -> list[Hold]:
     return ReservationService(db).mine(user)
 
 
-@router.post("", response_model=Hold, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=Hold,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[LimitHolds],
+)
 def place_hold(payload: HoldWrite, db: DbSession, user: CurrentUser) -> Hold:
     """Put stock aside for a few minutes so it can be checked out."""
     return ReservationService(db).place(payload, user)

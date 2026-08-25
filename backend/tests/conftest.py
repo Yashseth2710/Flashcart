@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from typing import cast
 
 import pytest
 from fastapi.testclient import TestClient
@@ -7,6 +8,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 import app.models  # noqa: F401  (import side effect: registers tables)
 from app.core.config import get_settings
+from app.core.limits import counting_session
 from app.db.session import get_db
 from app.main import app
 
@@ -43,11 +45,39 @@ def db(engine) -> Iterator[Session]:
         connection.close()
 
 
+def survives_closing(session: Session) -> Session:
+    """The test's session, with closing turned into nothing.
+
+    Counting closes its own session as soon as the tally is written, so a
+    connection is not held for the length of a request. Pointed at the test's
+    session, that close would end the transaction the rest of the test is
+    running in. The proxy lets the count be written where the test can roll it
+    back, while leaving the closing to the fixture that opened it.
+    """
+
+    class Borrowed:
+        def __getattr__(self, name: str) -> object:
+            return getattr(session, name)
+
+        def close(self) -> None:
+            pass
+
+    return cast(Session, Borrowed())
+
+
 @pytest.fixture
 def client(db: Session) -> Iterator[TestClient]:
     """A client whose requests run in the test's transaction, so anything a
-    request writes is rolled back with everything else."""
+    request writes is rolled back with everything else.
+
+    Rate limiting deliberately counts on a session of its own, so a refused
+    request still costs the caller an attempt. Pointed at the test's session
+    here, that tally rolls back too, which keeps one test's attempts from being
+    held against the next.
+    """
+    borrowed = survives_closing(db)
     app.dependency_overrides[get_db] = lambda: db
+    app.dependency_overrides[counting_session] = lambda: borrowed
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()

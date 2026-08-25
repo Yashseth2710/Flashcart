@@ -2,6 +2,7 @@ from fastapi import APIRouter, Response, status
 
 from app.core.config import get_settings
 from app.core.dependencies import CurrentUser, DbSession
+from app.core.limits import LimitLogins, LimitRegistrations
 from app.core.security import create_access_token
 from app.models import User
 from app.schemas.auth import (
@@ -35,7 +36,12 @@ def _start_session(response: Response, user: User) -> None:
     )
 
 
-@router.post("/register", response_model=UserProfile, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register",
+    response_model=UserProfile,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[LimitRegistrations],
+)
 def register(payload: RegistrationRequest, response: Response, db: DbSession) -> User:
     user = AuthService(db).register(
         name=payload.name, email=payload.email, password=payload.password
@@ -44,7 +50,7 @@ def register(payload: RegistrationRequest, response: Response, db: DbSession) ->
     return user
 
 
-@router.post("/login", response_model=UserProfile)
+@router.post("/login", response_model=UserProfile, dependencies=[LimitLogins])
 def login(payload: LoginRequest, response: Response, db: DbSession) -> User:
     user = AuthService(db).authenticate(email=payload.email, password=payload.password)
     _start_session(response, user)
