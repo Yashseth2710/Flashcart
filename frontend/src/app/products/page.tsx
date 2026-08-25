@@ -1,3 +1,4 @@
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { CatalogueBrowser } from "@/components/catalogue/catalogue-browser";
 
@@ -17,6 +18,7 @@ export default function ProductsPage() {
 
         <CatalogueBrowser />
       </main>
+      <SiteFooter />
     </>
   );
 }
