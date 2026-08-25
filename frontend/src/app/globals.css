@@ -57,8 +57,10 @@ body {
   outline-offset: 3px;
 }
 
-/* The strip scrolls one copy's width, then snaps back; four copies keep the
-   line unbroken at any width. */
+/* The strip is two identical halves and this moves it by exactly one of them,
+   so when the cycle restarts the second half is standing where the first began
+   and the jump cannot be seen. Any other distance lands mid-phrase and shows
+   the seam. */
 @keyframes marquee {
   from {
     transform: translateX(0);
