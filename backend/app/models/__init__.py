@@ -10,6 +10,7 @@ from app.models.inventory import Inventory
 from app.models.order import Order, OrderItem
 from app.models.product import Product, ProductVariant
 from app.models.reservation import Reservation
+from app.models.saved import SaleReminder, SavedProduct
 from app.models.user import User
 
 __all__ = [
@@ -25,6 +26,8 @@ __all__ = [
     "ProductVariant",
     "Reservation",
     "ReservationStatus",
+    "SaleReminder",
+    "SavedProduct",
     "User",
     "UserRole",
 ]

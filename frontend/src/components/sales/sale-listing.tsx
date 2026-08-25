@@ -6,6 +6,7 @@ import Link from "next/link";
 import { SaleClock } from "@/components/sales/sale-clock";
 import { SaleItemCard } from "@/components/sales/sale-item-card";
 import { SaleMarquee } from "@/components/sales/sale-marquee";
+import { RemindButton } from "@/components/saved/remind-button";
 import { fetchSales, type SaleDetail } from "@/lib/sales";
 
 export function SaleListing() {
@@ -65,7 +66,10 @@ function SaleBlock({ sale, isRunning }: { sale: SaleDetail; isRunning: boolean }
             </p>
           ) : null}
         </div>
-        <SaleClock sale={sale} />
+        <div className="flex flex-col items-end gap-4">
+          <SaleClock sale={sale} />
+          {!isRunning ? <RemindButton saleId={sale.id} /> : null}
+        </div>
       </div>
 
       {sale.items.length === 0 ? (

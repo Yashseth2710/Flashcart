@@ -55,8 +55,11 @@ def client(db: Session) -> Iterator[TestClient]:
 
 # Concurrency tests need connections that commit, which the fixtures above
 # deliberately prevent. Theirs live alongside rather than replacing these.
+# The sweep is autouse, but only where pytest can see it: a fixture is not
+# collected from a module that is merely imported, so it is named here too.
 from tests.conftest_concurrency import (  # noqa: E402,F401
     committing_engine,
     sessions,
+    sweep_abandoned_rows,
     world,
 )
