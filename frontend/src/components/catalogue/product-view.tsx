@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 
+import { KeepButton } from "@/components/saved/keep-button";
 import { ApiError } from "@/lib/api";
 import { fetchProduct, formatPrice } from "@/lib/catalogue";
 
@@ -86,10 +87,16 @@ export function ProductView({ slug }: { slug: string }) {
             ) : null}
           </dl>
 
-          <p className="mt-10 max-w-sm text-sm leading-relaxed text-muted">
-            This product is not in a sale right now. When it is, you will be able to reserve one
-            here and hold it while you check out.
-          </p>
+          {/* Keeping is the thing to do from here: sales are reached from the
+              sales page, so the useful action on a product is marking it.
+              Bordered rather than plain, or it reads as another caption in the
+              column of labels above it. */}
+          <div className="mt-10 max-w-sm">
+            <KeepButton productId={data.id} bordered />
+            <p className="mt-4 text-sm leading-relaxed text-muted">
+              Kept things are listed together, and say so when one turns up in a sale.
+            </p>
+          </div>
         </div>
       </div>
     </main>
