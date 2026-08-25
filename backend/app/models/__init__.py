@@ -9,6 +9,7 @@ from app.models.idempotency import IdempotencyKey
 from app.models.inventory import Inventory
 from app.models.order import Order, OrderItem
 from app.models.product import Product, ProductVariant
+from app.models.rate_limit import RequestCount
 from app.models.reservation import Reservation
 from app.models.saved import SaleReminder, SavedProduct
 from app.models.user import User
@@ -24,6 +25,7 @@ __all__ = [
     "OrderStatus",
     "Product",
     "ProductVariant",
+    "RequestCount",
     "Reservation",
     "ReservationStatus",
     "SaleReminder",
