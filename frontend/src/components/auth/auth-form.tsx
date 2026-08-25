@@ -61,7 +61,16 @@ export function AuthForm<S extends ZodType>({
       <div className="space-y-7">{children(errors)}</div>
 
       {error ? (
-        <p role="alert" className="mt-6 border-l-2 border-reject pl-4 text-sm text-reject">
+        <p
+          role="alert"
+          className={`mt-6 border-l-2 pl-4 text-sm ${
+            // Too many tries is a pause, not a rejection. Saying so in the
+            // quieter colour keeps the red for a password that is actually wrong.
+            error instanceof ApiError && error.isTooManyAttempts
+              ? "border-hold text-hold"
+              : "border-reject text-reject"
+          }`}
+        >
           {error instanceof ApiError ? error.message : "Something went wrong. Try again."}
         </p>
       ) : null}

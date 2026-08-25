@@ -23,6 +23,15 @@ def get_engine() -> Engine:
             # connections before they get old enough to be dropped.
             pool_pre_ping=True,
             pool_recycle=280,
+            # A flash sale is the one moment everybody arrives together, and
+            # they all queue on the same locked row: each waiting request is
+            # holding a connection while it waits. The default pool of five
+            # runs out long before the queue does.
+            pool_size=settings.pool_size,
+            max_overflow=settings.pool_overflow,
+            # Better to be told the app is full than to sit behind a queue
+            # until the database gives up on the transaction instead.
+            pool_timeout=settings.pool_wait_seconds,
         )
     return _engine
 

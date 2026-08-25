@@ -242,3 +242,19 @@ class SaleAlreadyFinished(HTTPException):
             status_code=status.HTTP_409_CONFLICT,
             detail="That sale has already ended.",
         )
+
+
+class TooManyAttempts(HTTPException):
+    """The caller is going faster than a person plausibly can.
+
+    Answered with how long until the window turns over, so a well-behaved
+    client can wait exactly that long instead of guessing or hammering.
+    """
+
+    def __init__(self, retry_after_seconds: int) -> None:
+        moment = "a second" if retry_after_seconds <= 1 else f"{retry_after_seconds} seconds"
+        super().__init__(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"That is a lot of tries at once. Wait {moment} and go again.",
+            headers={"Retry-After": str(retry_after_seconds)},
+        )
