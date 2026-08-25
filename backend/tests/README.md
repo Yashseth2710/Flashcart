@@ -54,15 +54,20 @@ parametrised over several stock levels.
 `test_rate_limits.py` counts against a real table, so the same tests cover the
 statement that does the counting and the decision made from it.
 
-Two things there are worth knowing.
+Three things there are worth knowing.
 
 Every test takes a caller name from the `subject` fixture rather than sharing
-one. A window turns over on the wall clock, so tests that shared a name would,
-once a minute, have a boundary fall between two of them and see a tally start
-again for reasons that have nothing to do with the code.
+one, and the tests that count by address send an `X-Forwarded-For` of their
+own. Without either, two tests share a tally and whichever runs second starts
+part-way through what the first spent.
 
-The tests that make several attempts and then read the count also pin the
-clock, for the same reason within a single test.
+The clock is held still for all of them. A window turns over on the wall clock,
+and a test making several requests takes long enough to straddle one: when the
+boundary lands mid-test the count starts again underneath it and an attempt
+that should have been refused is allowed. That failure moves to a different
+test on each run, which is what makes it worth designing out rather than
+retrying. Window turnover is still covered — by passing an explicit later
+moment, rather than by waiting for a real minute to pass.
 
 To check they still bite, take out the refusal in `check` in
 `app/services/rate_limit.py`:

@@ -1,12 +1,14 @@
 import Link from "next/link";
 
 import { FrontPageSale } from "@/components/sales/front-page-sale";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
+/* What a sale is. How a hold works is the footer's job, on every page rather
+   than only this one, so it is not said twice on the way down. */
 const rules = [
   { term: "Fixed stock", detail: "A sale opens with a set number of units and no more appear." },
   { term: "Fixed window", detail: "It runs for a stated length of time, then it is over." },
-  { term: "One hold each", detail: "Reserving puts a unit aside for five minutes while you decide." },
 ] as const;
 
 export default function Home() {
@@ -18,7 +20,9 @@ export default function Home() {
       <main className="px-6 sm:px-12">
         <section className="grid items-end gap-10 py-16 lg:grid-cols-[1.15fr_1fr] lg:gap-20 lg:py-24">
           <div>
-            <p className="font-script text-3xl leading-none text-ink-soft">Coming soon</p>
+            {/* Not a status: the shop is open. This is the shape of the thing
+                being sold, which is what the headline underneath finishes. */}
+            <p className="font-script text-3xl leading-none text-ink-soft">Fixed runs</p>
             <h1 className="mt-3 font-display text-5xl uppercase leading-[1.02] tracking-[0.045em] sm:text-6xl xl:text-7xl">
               Sales that
               <br />
@@ -49,7 +53,7 @@ export default function Home() {
         </section>
 
         <section className="border-t border-rule">
-          <dl className="grid sm:grid-cols-3">
+          <dl className="grid sm:grid-cols-2">
             {rules.map((rule, index) => (
               <div
                 key={rule.term}
@@ -64,13 +68,8 @@ export default function Home() {
           </dl>
         </section>
 
-        <section className="flex flex-wrap items-baseline justify-between gap-4 border-t border-rule py-10">
-          <p className="label text-muted">How a hold works</p>
-          <p className="text-sm text-ink-soft">
-            Reserve one and it is yours for five minutes while you check out.
-          </p>
-        </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

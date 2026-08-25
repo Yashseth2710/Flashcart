@@ -1,5 +1,6 @@
 import { AdminSaleDetail } from "@/components/admin/admin-sale-detail";
 import { RequireAdmin } from "@/components/admin/require-admin";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
 export default async function AdminSaleDetailPage({
@@ -15,6 +16,7 @@ export default async function AdminSaleDetailPage({
       <RequireAdmin>
         <AdminSaleDetail saleId={id} />
       </RequireAdmin>
+      <SiteFooter />
     </>
   );
 }

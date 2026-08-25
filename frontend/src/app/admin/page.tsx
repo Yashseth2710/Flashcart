@@ -1,3 +1,4 @@
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { AdminCatalogue } from "@/components/admin/admin-catalogue";
 import { RequireAdmin } from "@/components/admin/require-admin";
@@ -11,6 +12,7 @@ export default function AdminPage() {
       <RequireAdmin>
         <AdminCatalogue />
       </RequireAdmin>
+      <SiteFooter />
     </>
   );
 }

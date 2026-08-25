@@ -56,3 +56,30 @@ export function discountPercent(normal: string, sale: string): number {
   if (!Number.isFinite(before) || !Number.isFinite(after) || before <= 0) return 0;
   return Math.round(((before - after) / before) * 100);
 }
+
+/** Below this, a discount is not worth a badge.
+ *
+ *  A mark reading "2% off" is worse than no mark: it takes the loudest spot on
+ *  the card and spends it saying almost nothing, which makes every other badge
+ *  on the page mean less. */
+const WORTH_SAYING = 10;
+
+export function badgeWorthy(off: number): boolean {
+  return off >= WORTH_SAYING;
+}
+
+/** How close to gone something is.
+ *
+ *  A flash sale's one honest signal is scarcity, and it is only honest if it
+ *  is graded: "2 left" and "40 left" printed identically teach a shopper to
+ *  read neither. The thresholds are absolute rather than a share of the
+ *  allocation, because a shopper deciding whether to hurry is looking at how
+ *  many they could still get, not at what fraction of the original that is. */
+export type Scarcity = "gone" | "last-few" | "going" | "plenty";
+
+export function scarcityOf(available: number): Scarcity {
+  if (available <= 0) return "gone";
+  if (available <= 3) return "last-few";
+  if (available <= 10) return "going";
+  return "plenty";
+}

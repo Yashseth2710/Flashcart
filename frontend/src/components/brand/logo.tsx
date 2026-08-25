@@ -31,7 +31,10 @@ export function Logo({ withTagline = false, className = "" }: Props) {
       <CartMark className="h-7 w-11 text-hold" />
       <span className="mt-2 font-display text-3xl tracking-[0.14em] text-ink">FlashCart</span>
       {withTagline ? (
-        <span className="mt-2.5 flex w-full max-w-[15rem] items-center gap-3">
+        /* The rules need room of their own. Sized to the words plus the length
+           of two visible lines, rather than to the words alone: at the tighter
+           width the gaps ate the remainder and both rules came out at nothing. */
+        <span className="mt-2.5 flex w-full min-w-[19rem] items-center gap-3">
           <span className="h-px flex-1 bg-hold/50" />
           <span className="label whitespace-nowrap text-[0.6rem] text-ink-soft">
             Limited stock. Held fairly.
