@@ -4,10 +4,11 @@ import { FrontPageSale } from "@/components/sales/front-page-sale";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
+/* What a sale is. How a hold works is the footer's job, on every page rather
+   than only this one, so it is not said twice on the way down. */
 const rules = [
   { term: "Fixed stock", detail: "A sale opens with a set number of units and no more appear." },
   { term: "Fixed window", detail: "It runs for a stated length of time, then it is over." },
-  { term: "One hold each", detail: "Reserving puts a unit aside for five minutes while you decide." },
 ] as const;
 
 export default function Home() {
@@ -52,7 +53,7 @@ export default function Home() {
         </section>
 
         <section className="border-t border-rule">
-          <dl className="grid sm:grid-cols-3">
+          <dl className="grid sm:grid-cols-2">
             {rules.map((rule, index) => (
               <div
                 key={rule.term}
