@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { FrontPageSale } from "@/components/sales/front-page-sale";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
 const rules = [
@@ -18,7 +19,9 @@ export default function Home() {
       <main className="px-6 sm:px-12">
         <section className="grid items-end gap-10 py-16 lg:grid-cols-[1.15fr_1fr] lg:gap-20 lg:py-24">
           <div>
-            <p className="font-script text-3xl leading-none text-ink-soft">Coming soon</p>
+            {/* Not a status: the shop is open. This is the shape of the thing
+                being sold, which is what the headline underneath finishes. */}
+            <p className="font-script text-3xl leading-none text-ink-soft">Fixed runs</p>
             <h1 className="mt-3 font-display text-5xl uppercase leading-[1.02] tracking-[0.045em] sm:text-6xl xl:text-7xl">
               Sales that
               <br />
@@ -64,13 +67,8 @@ export default function Home() {
           </dl>
         </section>
 
-        <section className="flex flex-wrap items-baseline justify-between gap-4 border-t border-rule py-10">
-          <p className="label text-muted">How a hold works</p>
-          <p className="text-sm text-ink-soft">
-            Reserve one and it is yours for five minutes while you check out.
-          </p>
-        </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

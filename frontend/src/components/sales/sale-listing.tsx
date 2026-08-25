@@ -7,6 +7,7 @@ import { SaleClock } from "@/components/sales/sale-clock";
 import { SaleItemCard } from "@/components/sales/sale-item-card";
 import { SaleMarquee } from "@/components/sales/sale-marquee";
 import { RemindButton } from "@/components/saved/remind-button";
+import { useTurnover } from "@/hooks/use-turnover";
 import { fetchSales, type SaleDetail } from "@/lib/sales";
 
 export function SaleListing() {
@@ -19,6 +20,11 @@ export function SaleListing() {
 
   const running = data?.find((sale) => sale.status === "ACTIVE");
   const coming = data?.filter((sale) => sale.status === "UPCOMING") ?? [];
+
+  // The clock knows the exact second a sale turns over, and waiting for the
+  // next poll would leave hold buttons on a sale that has just closed, or hide
+  // one that has just opened. Asking the moment it happens closes that window.
+  useTurnover(running ?? coming[0]);
 
   return (
     <>

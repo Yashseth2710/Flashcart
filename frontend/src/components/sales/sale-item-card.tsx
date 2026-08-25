@@ -3,7 +3,37 @@ import Link from "next/link";
 
 import { ReserveControl } from "@/components/sales/reserve-control";
 import { formatPrice } from "@/lib/catalogue";
-import { discountPercent, type SaleItem } from "@/lib/sales";
+import { badgeWorthy, discountPercent, scarcityOf, type SaleItem } from "@/lib/sales";
+
+/** How many are left, said the way the number deserves.
+ *
+ *  Only the last few earn the warm colour. Once everything on a page is urgent
+ *  nothing is, so a healthy count is printed as plainly as any other fact and
+ *  the eye is left free for the one card that is nearly gone. */
+function StockLine({ available }: { available: number }) {
+  const scarcity = scarcityOf(available);
+
+  if (scarcity === "gone") {
+    return <span className="text-reject">All gone</span>;
+  }
+
+  if (scarcity === "last-few") {
+    /* Announced as it changes, since someone using a screen reader cannot see
+       the number drop while they are deciding. The visible words are the
+       announcement: a second hidden copy would read the count out twice. */
+    return (
+      <span className="text-hold" aria-live="polite">
+        Only {available} left
+      </span>
+    );
+  }
+
+  if (scarcity === "going") {
+    return <span className="text-ink">{available} left</span>;
+  }
+
+  return <span className="text-muted">{available} left</span>;
+}
 
 export function SaleItemCard({ item, isRunning }: { item: SaleItem; isRunning: boolean }) {
   const off = discountPercent(item.normal_price, item.sale_price);
@@ -26,7 +56,7 @@ export function SaleItemCard({ item, isRunning }: { item: SaleItem; isRunning: b
               }`}
             />
           ) : null}
-          {off > 0 ? (
+          {badgeWorthy(off) ? (
             <span className="label absolute left-0 top-0 bg-ink px-3 py-1.5 text-paper">
               {off}% off
             </span>
@@ -42,10 +72,8 @@ export function SaleItemCard({ item, isRunning }: { item: SaleItem; isRunning: b
       </Link>
 
       <p className="tabular mt-2 text-xs">
-        {soldOut ? (
-          <span className="text-reject">All gone</span>
-        ) : isRunning ? (
-          <span className="text-hold">{item.available_quantity} left</span>
+        {isRunning ? (
+          <StockLine available={item.available_quantity} />
         ) : (
           <span className="text-muted">{item.allocated_quantity} in the sale</span>
         )}

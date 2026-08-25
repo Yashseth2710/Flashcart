@@ -43,13 +43,31 @@ def other() -> str:
 
 
 @pytest.fixture
-def steady_clock(monkeypatch: pytest.MonkeyPatch) -> datetime:
-    """Holds the service's clock still for the length of a test.
+def from_address() -> dict[str, str]:
+    """A caller address nobody else is counting.
 
-    A window turns over on the wall clock. A test that makes several attempts
-    and then reads the tally would, once a minute, have the boundary fall in the
-    middle of it and see a count start again for reasons that have nothing to do
-    with the code. Pinning the moment removes that entirely.
+    The sign-in limit is keyed on where a request came from, and every test
+    client arrives from the same loopback address. Without this they would
+    share one tally and each would start part-way through whatever the last
+    one spent. The app reads this header to find the caller behind a proxy,
+    which is exactly the seam a test needs.
+    """
+    return {"X-Forwarded-For": f"198.51.100.{uuid.uuid4().int % 250 + 1}"}
+
+
+@pytest.fixture(autouse=True)
+def steady_clock(monkeypatch: pytest.MonkeyPatch) -> datetime:
+    """Holds the service's clock still for the length of every test here.
+
+    A window turns over on the wall clock, and a test that makes several
+    attempts takes long enough to straddle one: each request is a real round
+    trip. When the boundary lands mid-test the tally starts again underneath
+    it, and an attempt that should have been refused is allowed — a failure
+    that says nothing about the code and moves to a different test each run.
+
+    Autouse because every test in this file counts something, and none of them
+    wants the window moving while they do. The turnover itself is covered by
+    passing an explicit later moment, rather than by waiting for a real minute.
     """
     moment = datetime(2026, 8, 25, 19, 30, 12, tzinfo=UTC)
     monkeypatch.setattr(rate_limit_service, "now", lambda: moment)
@@ -322,7 +340,10 @@ def test_reading_holds_is_never_refused(
 
 
 def test_signing_in_is_refused_after_too_many_guesses(
-    client: TestClient, db: Session, monkeypatch: pytest.MonkeyPatch
+    client: TestClient,
+    db: Session,
+    monkeypatch: pytest.MonkeyPatch,
+    from_address: dict[str, str],
 ) -> None:
     monkeypatch.setattr(get_settings(), "logins_per_minute", 3)
     user = make_user(db)
@@ -330,13 +351,19 @@ def test_signing_in_is_refused_after_too_many_guesses(
     db.flush()
 
     guess = {"email": user.email, "password": "not-the-right-password"}
-    codes = [client.post("/api/v1/auth/login", json=guess).status_code for _ in range(5)]
+    codes = [
+        client.post("/api/v1/auth/login", json=guess, headers=from_address).status_code
+        for _ in range(5)
+    ]
 
     assert codes == [401, 401, 401, 429, 429]
 
 
 def test_guessing_across_accounts_does_not_reset_the_count(
-    client: TestClient, db: Session, monkeypatch: pytest.MonkeyPatch
+    client: TestClient,
+    db: Session,
+    monkeypatch: pytest.MonkeyPatch,
+    from_address: dict[str, str],
 ) -> None:
     """Counted by where the guesses come from, which is what makes a list of
     stolen emails no cheaper to work through than one."""
@@ -350,7 +377,9 @@ def test_guessing_across_accounts_does_not_reset_the_count(
 
     codes = [
         client.post(
-            "/api/v1/auth/login", json={"email": person.email, "password": "wrong"}
+            "/api/v1/auth/login",
+            json={"email": person.email, "password": "wrong"},
+            headers=from_address,
         ).status_code
         for person in people
     ]
@@ -359,15 +388,24 @@ def test_guessing_across_accounts_does_not_reset_the_count(
 
 
 def test_the_right_password_still_works_under_the_limit(
-    client: TestClient, db: Session, monkeypatch: pytest.MonkeyPatch
+    client: TestClient,
+    db: Session,
+    monkeypatch: pytest.MonkeyPatch,
+    from_address: dict[str, str],
 ) -> None:
     monkeypatch.setattr(get_settings(), "logins_per_minute", 5)
     user = make_user(db)
     user.password_hash = hash_password(PASSWORD)
     db.flush()
 
-    client.post("/api/v1/auth/login", json={"email": user.email, "password": "wrong"})
-    response = client.post("/api/v1/auth/login", json={"email": user.email, "password": PASSWORD})
+    client.post(
+        "/api/v1/auth/login", json={"email": user.email, "password": "wrong"}, headers=from_address
+    )
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": user.email, "password": PASSWORD},
+        headers=from_address,
+    )
 
     assert response.status_code == 200
 

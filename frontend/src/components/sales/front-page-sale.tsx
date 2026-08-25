@@ -6,6 +6,7 @@ import Link from "next/link";
 import { SaleClock } from "@/components/sales/sale-clock";
 import { SaleItemCard } from "@/components/sales/sale-item-card";
 import { SaleMarquee } from "@/components/sales/sale-marquee";
+import { useTurnover } from "@/hooks/use-turnover";
 import { fetchSales } from "@/lib/sales";
 
 /** The front page leads with whatever is happening: a sale on now, one coming,
@@ -20,6 +21,10 @@ export function FrontPageSale() {
   const running = data?.find((sale) => sale.status === "ACTIVE");
   const next = data?.find((sale) => sale.status === "UPCOMING");
   const sale = running ?? next;
+
+  // The front page leads with this sale, so it must not be the last to know
+  // that it has opened or closed.
+  useTurnover(sale);
 
   if (!sale) {
     return null;
