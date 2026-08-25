@@ -85,6 +85,9 @@ export function SiteDrawer({ isOpen, onClose }: Props) {
             <>
               <p className="mt-9 text-[0.6rem] uppercase tracking-[0.24em] text-muted/70">{profile.name}</p>
               <Group>
+                <Item href="/account/kept" current={pathname}>
+                  Kept
+                </Item>
                 <Item href="/account/holds" current={pathname}>
                   Holds
                 </Item>
