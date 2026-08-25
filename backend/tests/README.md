@@ -23,6 +23,11 @@ connections and clean up afterwards by tracking what they made.
 That is also why they are slow. Twenty threads doing real round-trips takes
 minutes against a remote database, seconds against a local one.
 
+Because they commit, what they write outlives the process. A failing test is
+cleaned up by its own fixture, but a run that is killed part-way leaves rows
+behind, so the next run sweeps them away before it starts. Both paths match on
+the `crowd-` names the fixtures use, and nothing else is ever touched.
+
 ## Checking the tests still bite
 
 A concurrency test that passes against broken code is worse than no test. The
