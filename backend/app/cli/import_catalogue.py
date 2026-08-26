@@ -12,9 +12,7 @@ rather than duplicated.
 """
 
 import argparse
-import re
 import sys
-import unicodedata
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
@@ -22,16 +20,12 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.text import slugify
 from app.db.session import get_session_factory
 from app.models import Inventory, Product, ProductVariant
 
 SOURCE = "https://dummyjson.com/products"
 PAGE_SIZE = 100
-
-
-def slugify(value: str) -> str:
-    ascii_only = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode()
-    return re.sub(r"[^a-z0-9]+", "-", ascii_only.lower()).strip("-")
 
 
 def money(value: float) -> Decimal:

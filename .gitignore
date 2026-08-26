@@ -38,3 +38,6 @@ AGENTS.md
 playwright-report/
 test-results/
 shots/
+
+# Vercel's local link and its OIDC token.
+.vercel
