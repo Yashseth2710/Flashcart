@@ -132,33 +132,28 @@ the contention the code exists to handle never happens. See
 
 ## Deploying
 
-Both halves run on Vercel as separate projects, one per directory.
+Both halves run as one Vercel project, using
+[Services](https://vercel.com/docs/services): the storefront and the API are built
+separately from their own directories and served from a single domain. `vercel.json` at the
+repository root declares them and routes `/api/*` to the backend, everything else to the
+storefront.
 
-| | Root directory | Notable settings |
-|---|---|---|
-| Frontend | `frontend` | `NEXT_PUBLIC_API_URL` = the backend's URL |
-| Backend | `backend` | see below |
+Because there is one domain, the API is same-origin. Nothing is cross-site, so the session
+cookie stays `SameSite=Lax` and no CORS configuration is needed at all.
 
-Backend environment variables:
+Environment variables on the project:
 
 ```
 DATABASE_URL             Neon's POOLED connection string
 MIGRATION_DATABASE_URL   Neon's DIRECT string — a transaction pooler mangles DDL
 JWT_SECRET               python -c "import secrets; print(secrets.token_urlsafe(48))"
-CORS_ORIGINS             ["https://your-frontend.vercel.app"]
 COOKIE_SECURE            true
-COOKIE_SAMESITE          none
 ENVIRONMENT              production
+NEXT_PUBLIC_API_URL      leave empty, so the browser calls /api/v1 on this same domain
 ```
 
-Two of those are easy to get wrong and both fail quietly. `CORS_ORIGINS` must name the
-frontend's exact origin or the browser blocks every call. And because the pages and the API
-sit on different domains, the session cookie has to be `SameSite=None` — a `lax` cookie is
-simply never sent to the API, so sign-in appears to work and then does not. `SameSite=None`
-is only honoured over HTTPS, which is why `COOKIE_SECURE` must be true; the app refuses to
-start on the combination browsers silently drop.
-
-Run the seed once against the deployed database, then sign in and create a sale.
+Then run the seed once against the deployed database, sign in, and create a sale at
+`/admin/sales`.
 
 **One honest caveat.** Serverless runs each concurrent request in its own process, so the
 connection pool this project tunes for a rush does not apply there — the app detects Vercel

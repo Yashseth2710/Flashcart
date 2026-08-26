@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+/** Where the API lives.
+ *
+ *  Deployed, the pages and the API are one domain and this is empty, so calls
+ *  go to a same-origin path — which is what lets the session cookie work with
+ *  no cross-site arrangement at all. Set NEXT_PUBLIC_API_URL to "" there.
+ *
+ *  Locally they are two servers, so the fallback names the other one. It is a
+ *  fallback rather than a blank because a clone with no .env.local should run,
+ *  not fail quietly against an address that is not listening. */
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export class ApiError extends Error {
