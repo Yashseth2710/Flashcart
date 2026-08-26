@@ -12,9 +12,21 @@ const sessionKey = ["session"] as const;
 export function useSession() {
   const { data, isPending } = useQuery({
     queryKey: sessionKey,
-    queryFn: fetchProfile,
-    // Not being signed in is an answer, not a failure worth retrying.
-    retry: (count, error) => !(error instanceof ApiError && error.status === 401) && count < 1,
+    queryFn: async () => {
+      try {
+        return await fetchProfile();
+      } catch (error) {
+        // Not being signed in is an answer, so it is returned rather than
+        // thrown. A thrown one is an error as far as the cache is concerned,
+        // and an errored query is asked again the moment another component
+        // subscribes to it — which on pages whose signed-in parts appear only
+        // once their own data has arrived meant asking the server a second
+        // time to be told the same thing.
+        if (error instanceof ApiError && error.status === 401) return null;
+        throw error;
+      }
+    },
+    retry: 1,
     staleTime: 5 * 60_000,
   });
 
