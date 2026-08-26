@@ -143,3 +143,74 @@ def test_a_product_slug_is_unique(db: Session) -> None:
 
 def test_unique_helper_does_not_repeat(db: Session) -> None:
     assert unique("x") != unique("x")
+
+
+# How connections are held, which depends on where the app is running
+
+
+def test_a_long_running_server_pools_connections() -> None:
+    """Everyone queues on one locked row holding a connection while they wait,
+    so the pool has to be deep enough for the queue."""
+    from app.core.config import Settings
+    from app.db.session import pool_for
+
+    settings = Settings(vercel="")
+
+    held = pool_for(settings)
+
+    assert held["pool_size"] == settings.pool_size
+    assert held["max_overflow"] == settings.pool_overflow
+    assert "poolclass" not in held
+
+
+def test_serverless_holds_no_pool_of_its_own() -> None:
+    """A pool would be shared with nobody, and would multiply the connection
+    count by however many instances happen to be awake."""
+    from sqlalchemy.pool import NullPool
+
+    from app.core.config import Settings
+    from app.db.session import pool_for
+
+    held = pool_for(Settings(vercel="1"))
+
+    assert held["poolclass"] is NullPool
+    assert "pool_size" not in held
+    assert held["pool_pre_ping"] is True
+
+
+def test_the_platform_is_read_rather_than_configured() -> None:
+    """Vercel sets this itself, so nobody has to remember to."""
+    from app.core.config import Settings
+
+    assert Settings(vercel="1").serverless is True
+    assert Settings(vercel="").serverless is False
+
+
+# The session cookie, which has to cross domains once deployed
+
+
+def test_a_cookie_no_browser_would_keep_is_refused() -> None:
+    """SameSite=None without Secure is dropped silently, so the symptom is a
+    sign-in that appears to work and then does not."""
+    import pytest
+    from pydantic import ValidationError
+
+    from app.core.config import Settings
+
+    with pytest.raises(ValidationError):
+        Settings(cookie_samesite="none", cookie_secure=False)
+
+
+def test_the_pairing_a_deployment_needs_is_allowed() -> None:
+    from app.core.config import Settings
+
+    settings = Settings(cookie_samesite="none", cookie_secure=True)
+
+    assert settings.cookie_samesite == "none"
+
+
+def test_the_local_default_stays_lax() -> None:
+    """Nothing crosses a domain when the pages and the API share one."""
+    from app.core.config import Settings
+
+    assert Settings().cookie_samesite == "lax"
