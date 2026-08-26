@@ -226,26 +226,36 @@ def test_a_refused_attempt_still_counts(db: Session, subject: str, steady_clock:
 # Clearing up
 
 
-def test_windows_that_are_past_are_swept_away(db: Session, subject: str) -> None:
+def test_windows_that_are_past_are_swept_away(
+    db: Session, subject: str, steady_clock: datetime
+) -> None:
+    """A sweep clears every window older than the cutoff, so what is asserted
+    here is this caller's own row rather than a count of the whole table."""
     counts = RateLimitRepository(db)
-    long_ago = datetime.now(UTC) - timedelta(hours=3)
+    long_ago = steady_clock - timedelta(hours=3)
     counts.count_attempt(subject, "holds", long_ago)
+    assert counts.hits_in_window(subject, "holds", long_ago) == 1
 
-    removed = counts.forget_older_than(datetime.now(UTC) - timedelta(hours=1))
+    counts.forget_older_than(steady_clock - timedelta(hours=1))
 
-    assert removed == 1
     assert counts.hits_in_window(subject, "holds", long_ago) == 0
 
 
-def test_the_service_sweeps_what_it_is_told_to_keep(db: Session, subject: str) -> None:
+def test_the_service_sweeps_what_it_is_told_to_keep(
+    db: Session, subject: str, steady_clock: datetime
+) -> None:
     """The retention is an argument rather than a mutated setting, so a sweep
     run by hand cannot change what the running app is counting."""
     counts = RateLimitRepository(db)
-    counts.count_attempt(subject, "holds", datetime.now(UTC) - timedelta(hours=3))
+    stale = steady_clock - timedelta(hours=3)
+    recent = steady_clock - timedelta(minutes=5)
+    counts.count_attempt(subject, "holds", stale)
+    counts.count_attempt(subject, "holds", recent)
 
-    removed = RateLimitService(db).sweep(keep_minutes=60)
+    RateLimitService(db).sweep(keep_minutes=60)
 
-    assert removed == 1
+    assert counts.hits_in_window(subject, "holds", stale) == 0
+    assert counts.hits_in_window(subject, "holds", recent) == 1
 
 
 def test_the_current_window_survives_a_sweep(db: Session, subject: str) -> None:

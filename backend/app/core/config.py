@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -14,6 +15,14 @@ class Settings(BaseSettings):
     access_token_minutes: int = 60 * 24
     cookie_name: str = "flashcart_session"
     cookie_secure: bool = False
+    # How willing the browser is to send the session cookie from another site.
+    #
+    # "lax" is the safe default and is right whenever the pages and the API
+    # share a domain. Deployed to two different domains they no longer do, and
+    # a lax cookie is simply never sent to the API: nobody stays signed in.
+    # "none" is what makes that work, and the browser only honours it over
+    # HTTPS, so it must be paired with COOKIE_SECURE=true.
+    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
     environment: str = "development"
     # How long a hold lasts. Long enough to finish checking out, short enough
     # that an abandoned basket does not sit on stock others are waiting for.
@@ -44,6 +53,28 @@ class Settings(BaseSettings):
     # How long to wait for one before giving up. Kept under the reservation
     # window so a request fails cleanly rather than being killed mid-transaction.
     pool_wait_seconds: int = 20
+
+    # Set by Vercel on every deployment, and by nothing else. Read rather than
+    # configured by hand because the pooling that suits a long-running server is
+    # actively wrong on a platform that runs each request in its own process,
+    # and a setting somebody has to remember is a setting that gets forgotten.
+    vercel: str = ""
+
+    @property
+    def serverless(self) -> bool:
+        return bool(self.vercel)
+
+    @model_validator(mode="after")
+    def _refuse_a_cookie_no_browser_will_keep(self) -> "Settings":
+        """SameSite=None without Secure is dropped rather than refused.
+
+        Browsers ignore such a cookie silently, so the symptom is a sign-in
+        that appears to work and then does not, which is far harder to place
+        than being told here.
+        """
+        if self.cookie_samesite == "none" and not self.cookie_secure:
+            raise ValueError("COOKIE_SAMESITE=none requires COOKIE_SECURE=true")
+        return self
 
     @model_validator(mode="after")
     def _refuse_to_run_unsigned(self) -> "Settings":

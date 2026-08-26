@@ -30,7 +30,7 @@ def _start_session(response: Response, user: User) -> None:
         value=create_access_token(str(user.id), user.role.value),
         httponly=True,
         secure=settings.cookie_secure,
-        samesite="lax",
+        samesite=settings.cookie_samesite,
         max_age=settings.access_token_minutes * 60,
         path="/",
     )
