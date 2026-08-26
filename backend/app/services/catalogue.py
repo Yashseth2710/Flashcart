@@ -2,12 +2,12 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from app.cli.import_catalogue import slugify
 from app.core.exceptions import (
     ProductNotFound,
     StockBelowCommitted,
     VariantNotFound,
 )
+from app.core.text import slugify
 from app.models import Inventory, Product, ProductVariant
 from app.repositories.catalogue import InventoryRepository, ProductRepository
 from app.schemas.catalogue import ProductUpdate, ProductWrite
